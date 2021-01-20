@@ -39,9 +39,9 @@ want_legend = True
 want_animation = False #want animation? Gives Animation of both bands
 second_plot = True
 interval_time_var = 1 #time_var between measurements in h 
-want_fit = True #just to test of the data is corrupted
+want_fit = True #just to test of the data is corrupted, if so turn this to false
 
-#modelfit_parameters #use if NaN error occours 
+#modelfit_parameters change them only if NaN error occours 
 #model1: a*np.exp(x*k) + b
 param_a = 1
 param_k = -1
@@ -51,11 +51,11 @@ param_A = 1
 param_B = 0
 param_K = 0.01
 
-base_line_left = 852.0
-base_line_right = 858.5 
+base_line_left = 852.0   #left has to be the smaller number
+base_line_right = 858.5  #right has to be the smaller number
 
-base_line_left_2 = 735.0
-base_line_right_2 = 738.0
+base_line_left_2 = 735.0    #left has to be the smaller number
+base_line_right_2 = 738.0   #right has to be the smaller number
 
 # name of the files, file data like .eps, .gif ... has to be given
 file_format = "eps" #has to be set to the same as the format of the plot
