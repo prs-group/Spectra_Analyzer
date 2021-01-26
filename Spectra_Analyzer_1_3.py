@@ -15,11 +15,10 @@ import re
 from matplotlib.font_manager import FontProperties
 import scipy
 from scipy import integrate
+import pandas as pd
 
-
-#Version 1.2 04.12.20
-#Changelog:
-#fit can be disabled
+#Version 1.3 26.01.21
+#author = Marcel Ruth
 #simps integration got replaced by trapz integration due to an integration error when using simps
 #    _._     _, -'""`-._
 #   (,-.`._,'(  MR   |\`-/
@@ -30,16 +29,16 @@ from scipy import integrate
 
 #-------------------------
 #Change Variables here 
-how_often = 37 #number of time_vars, files, imports = last number + 1 so if BB_137.0270.csv is the last file, then 271
-name_sample = "BB_101" #Samplenumber for "Samplenumber.xxxx.csv"
+how_often = 20 #number of time_vars, files, imports = last number + 1 so if BB_137.0270.csv is the last file, then 271
+name_sample = "BB_137" #Samplenumber for "Samplenumber.xxxx.csv"
 Spectra_cut = False  #cut in spectra data?
 break_time_var = 19 #how long was the break time_var in h
 cut_number = 124 #Last number of first data set +1, e.g. BB_137.0123.csv is the last, then choose 124
 want_legend = True
 want_animation = False #want animation? Gives Animation of both bands
-second_plot = True
+second_plot = False
 interval_time_var = 1 #time_var between measurements in h 
-want_fit = True #just to test of the data is corrupted, if so turn this to false
+want_fit = False #just to test of the data is corrupted, if so turn this to false
 
 #modelfit_parameters change them only if NaN error occours 
 #model1: a*np.exp(x*k) + b
@@ -51,8 +50,8 @@ param_A = 1
 param_B = 0
 param_K = 0.01
 
-base_line_left = 852.0   #left has to be the smaller number
-base_line_right = 858.5  #right has to be the smaller number
+base_line_left = 1248.2   #left has to be the smaller number
+base_line_right = 1249.5  #right has to be the smaller number
 
 base_line_left_2 = 735.0    #left has to be the smaller number
 base_line_right_2 = 738.0   #right has to be the smaller number
@@ -593,6 +592,14 @@ if want_animation == True:
     anim = animation.FuncAnimation(fig, animate, init_func=init,
                                    frames=how_often, interval=20, blit=True)
     anim.save(name_anim_2, fps=30)
+
+
+df = pd.DataFrame(data={"time": time_var, "integral_band1": area_list})
+df.to_csv("integral_values_band1.csv", sep=",", index=False)
+
+if second_plot == True:
+    df = pd.DataFrame(data={"time": time_var, "integral_band2": area_list_2})
+    df.to_csv("integral_values_band2.csv", sep=",", index=False)
 
 #END OF SCRIPT     
 print("""
