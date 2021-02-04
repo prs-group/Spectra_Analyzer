@@ -29,29 +29,41 @@ import pandas as pd
 
 #-------------------------
 #Change Variables here 
-how_often = 20 #number of time_vars, files, imports = last number + 1 so if BB_137.0270.csv is the last file, then 271
-name_sample = "BB_137" #Samplenumber for "Samplenumber.xxxx.csv"
+how_often = 44 #number of time_vars, files, imports = last number + 1 so if BB_137.0270.csv is the last file, then 271
+name_sample = "MS136" #Samplenumber for "Samplenumber.xxxx.csv"
 Spectra_cut = False  #cut in spectra data?
-break_time_var = 19 #how long was the break time_var in h
-cut_number = 124 #Last number of first data set +1, e.g. BB_137.0123.csv is the last, then choose 124
+break_time_var = 0 #how long was the break time_var in h
+cut_number = 120 #Last number of first data set +1, e.g. BB_137.0123.csv is the last, then choose 124
 want_legend = True
 want_animation = False #want animation? Gives Animation of both bands
 second_plot = False
-interval_time_var = 1 #time_var between measurements in h 
-want_fit = False #just to test of the data is corrupted, if so turn this to false
+interval_time_var = 0.08333333 #time_var between measurements in h 
+want_fit = True #just to test of the data is corrupted, if so turn this to false
+#-------------------------
+band_1_e_func = 2 #number of e functions to fit
+band_2_e_func = 2 #number of e functions to fit
 
 #modelfit_parameters change them only if NaN error occours 
 #model1: a*np.exp(x*k) + b
-param_a = 1
-param_k = -1
-param_b = 1
+param_a = 0.02711
+param_k = -5.09866
+param_b = 0.01
+param_a_2 = 0.01494
+param_k_2 = -0.83808
+param_a_3 = 1
+param_k_3 = -1
+
 #model2: A*(1-np.exp(-K*X))+B
 param_A = 1
-param_B = 0
 param_K = 0.01
+param_B = 0
+param_A_2 = 1
+param_K_2 = 0.01
+param_A_3 = 1
+param_K_3 = 0.01
 
-base_line_left = 1248.2   #left has to be the smaller number
-base_line_right = 1249.5  #right has to be the smaller number
+base_line_left = 2335.5   #left has to be the smaller number
+base_line_right = 2337.2  #right has to be the smaller number
 
 base_line_left_2 = 735.0    #left has to be the smaller number
 base_line_right_2 = 738.0   #right has to be the smaller number
@@ -405,57 +417,117 @@ for i in range(how_often):
 #Fit function
 #-------------------------  
 if want_fit == True:
-    def exponential(x, a, k, b):
-        return a*np.exp(x*k) + b
-
-    ExponentialModel = lmfit.Model(exponential)
-    result = ExponentialModel.fit(area_list, x=time_var, a=param_a, k=param_k, b=param_b)
-    #-------------------------
+    if band_1_e_func == 1:
+        def exponential(x, a, k, b):
+            return a*np.exp(x*k) + b
+        ExponentialModel = lmfit.Model(exponential)
+        result = ExponentialModel.fit(area_list, x=time_var, a=param_a, k=param_k, b=param_b)
+    if band_1_e_func == 2:
+        def exponential_d(x, a, k, b, a_2, k_2):
+            return a*np.exp(x*k) + a_2*np.exp(x*k_2) + b
+        ExponentialModel = lmfit.Model(exponential_d)
+        result = ExponentialModel.fit(area_list, x=time_var, a=param_a, k=param_k, b=param_b, a_2=param_a_2, k_2=param_k_2)
+    if band_1_e_func == 3:
+        def exponential_t(x, a, k, b, a_2, k_2, a_3, k_3):
+            return a*np.exp(x*k) + a_2*np.exp(x*k_2) + a_3*np.exp(x*k_3)+ b  
+        ExponentialModel = lmfit.Model(exponential_t)
+        result = ExponentialModel.fit(area_list, x=time_var, a=param_a, k=param_k, b=param_b, a_2=param_a_2, k_2=param_k_2, a_3=param_a_3, k_3=param_k_3)
 
     #Fit function2
     #-------------------------
     if second_plot == True:
-        def exponential_2(X, A, K, B):
-            return  A*(1-np.exp(-K*X))+B
-
-        exponentialModel_2 = lmfit.Model(exponential_2)
-        result_2 = exponentialModel_2.fit(area_list_2, X=time_var, A=param_A, B=param_B, K=param_K)
-
+        if band_2_e_func == 1:
+            def exponential_2(X, A, K, B):
+                return  A*(1-np.exp(-K*X))+B
+            exponentialModel_2 = lmfit.Model(exponential_2)
+            result_2 = exponentialModel_2.fit(area_list_2, X=time_var, A=param_A, B=param_B, K=param_K)
+        if band_2_e_func == 2:
+            def exponential_2_d(X, A, K, B, A_2, K_2):
+                return  A*(1-np.exp(-K*X)) + A_2*(1-np.exp(-K_2*X)) +B
+            exponentialModel_2 = lmfit.Model(exponential_2_d)
+            result_2 = exponentialModel_2.fit(area_list_2, X=time_var, A=param_A, B=param_B, K=param_K, A_2=param_A_2, K_2=param_K_2)
+        if band_2_e_func == 3:
+            def exponential_2_t(X, A, K, B, A_2, K_2, A_3, K_3):
+                return  A*(1-np.exp(-K*X)) + A_2*(1-np.exp(-K_2*X)) + A_3*(1-np.exp(-K_3*X)) + B
+            exponentialModel_2 = lmfit.Model(exponential_2_t)
+            result_2 = exponentialModel_2.fit(area_list_2, X=time_var, A=param_A, B=param_B, K=param_K, A_2=param_A_2, K_2=param_K_2, ΑΑΑ=param_A_3, K_3=param_K_3)
 
     #search for parameters
     #-------------------------
     input_text = result.fit_report()
-    k_crude = re.findall(r"k:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+    k_crude = re.findall(r"k:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
     k_calcul = float(k_crude[-1].replace("k: ", ""))
     k_const = round(k_calcul, 4)
-    a_crude = re.findall(r"a:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+    a_crude = re.findall(r"a:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
     a_const = round(float(a_crude[-1].replace("a: ", "")), 4)
-    b_crude = re.findall(r"b:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+    b_crude = re.findall(r"b:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
     b_const = round(float(b_crude[-1].replace("b: ", "")), 4)
     t_half = np.log(2)/(-k_const)
     t_half_round = round(t_half, 1)
+    if band_1_e_func == 2 or band_1_e_func ==3:
+        k_2_crude = re.findall(r"k_2:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+        k_2_calcul = float(k_2_crude[-1].replace("k_2: ", ""))
+        k_2_const = round(k_2_calcul, 4)
+        a_2_crude = re.findall(r"a_2:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+        a_2_const = round(float(a_2_crude[-1].replace("a_2: ", "")), 4)
+        t_half_e2 = np.log(2)/(-k_2_const)
+        t_half_round_e2 = round(t_half_e2, 1)
+    if band_1_e_func == 3:
+        k_3_crude = re.findall(r"k_3:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+        k_3_calcul = float(k_3_crude[-1].replace("k_3: ", ""))
+        k_3_const = round(k_3_calcul, 4)
+        a_3_crude = re.findall(r"a_3:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+        a_3_const = round(float(a_3_crude[-1].replace("a_3: ", "")), 4)
+        t_half_e3 = np.log(2)/(-k_3_const)
+        t_half_round_e3 = round(t_half_e3, 1)
     print(result.fit_report())
 
     if second_plot == True:
         input_text2 = result_2.fit_report() #search for parameters
-        K_crude = re.findall(r"K:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
+        K_crude = re.findall(r"K:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
         K_calcul = float(K_crude[-1].replace("K: ", ""))
         K_const = round(K_calcul, 4)
-        A_crude = re.findall(r"A:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
+        A_crude = re.findall(r"A:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
         A_const = round(float(A_crude[-1].replace("A: ", "")), 4)
-        B_crude = re.findall(r"B:[\n ]?[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
+        B_crude = re.findall(r"B:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text2)
         B_const = round(float(B_crude[-1].replace("B: ", "")), 4)
         t_half2 = np.log(2)/(-K_const)
         t_half_round2 = round(-t_half2, 1)
+        if band_1_e_func == 2 or band_1_e_func ==3:
+            K_2_crude = re.findall(r"K_2:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+            K_2_calcul = float(K_2_crude[-1].replace("K_2: ", ""))
+            K_2_const = round(K_2_calcul, 4)
+            A_2_crude = re.findall(r"A_2:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+            A_2_const = round(float(A_2_crude[-1].replace("A_2: ", "")), 4)
+            t_half2_e2 = np.log(2)/(-K_2_const)
+            t_half_round2_e2 = round(t_half_e2, 1)
+        if band_1_e_func == 3:
+            K_3_crude = re.findall(r"K_3:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+            K_3_calcul = float(K_3_crude[-1].replace("K_3: ", ""))
+            K_3_const = round(K_3_calcul, 4)
+            A_3_crude = re.findall(r"A_3:[\n ]*[+-]?[\n ]?[0-9]*[\n ]*[0-9]*[\n ]*[.]?[\n ]*[0-9]+[\n ]*[0-9]+", input_text)
+            A_3_const = round(float(A_3_crude[-1].replace("A_3: ", "")), 4)
+            t_half2_e3 = np.log(2)/(-K_3_const)
+            t_half_round2_e3 = round(t_half2_e3, 1)
         print(result_2.fit_report())
 
 
 #Plot
 #-------------------------
 if want_fit == True:
-    label_fit = "Best Fit: " + str(a_const) +" · exp(" + str(k_const) + "0 · $t$) + " + str(b_const) + "\nHalf-life = " + str(t_half_round) + " h"
+    if band_1_e_func == 1:
+        label_fit = "Best Fit: " + str(a_const) +" · exp(" + str(k_const) + "0 · $t$) + " + str(b_const) + "\nHalf-life = " + str(t_half_round) + " h"
+    if band_1_e_func == 2:
+        label_fit = "Best Fit: " + str(a_const) +" · exp(" + str(k_const) + "0 · $t$) + " + str(a_2_const) +" · exp(" + str(k_2_const) + "0 · $t$) + " + str(b_const) + "\nHalf-life = " + str(t_half_round) + " and " + str(t_half_round_e2) + " h"
+    if band_1_e_func == 3:
+        label_fit = "Best Fit: " + str(a_const) +" · exp(" + str(k_const) + "0 · $t$) + " + str(a_2_const) +" · exp(" + str(k_2_const) + "0 · $t$) + " + str(a_3_const) + " · exp(" + str(k_3_const) + "0 · $t$) + "+ str(b_const) + "\nHalf-life = " + str(t_half_round) + " and " + str(t_half_round_e2) + str(t_half_round_e3) + " h"
     if second_plot == True:
-        label_fit_2 = "Best Fit: " + str(A_const) +" · (1 - exp(-" + str(K_const) + " · $t$) + " + str(B_const) + "\nHalf-life = " + str(t_half_round2) + " h"
+        if band_1_e_func == 1:
+            label_fit_2 = "Best Fit: " + str(A_const) +" · exp(" + str(K_const) + "0 · $t$) + " + str(B_const) + "\nHalf-life = " + str(t_half_round2) + " h"
+        if band_1_e_func == 2:
+            label_fit_2 = "Best Fit: " + str(A_const) +" · exp(" + str(K_const) + "0 · $t$) + " + str(A_2_const) +" · exp(" + str(K_2_const) + "0 · $t$) + " + str(B_const) + "\nHalf-life = " + str(t_half_round2) + " and " + str(t_half_round2_e2) + " h"
+        if band_1_e_func == 3:
+            label_fit_2 = "Best Fit: " + str(A_const) +" · exp(" + str(K_const) + "0 · $t$) + " + str(A_2_const) +" · exp(" + str(K_2_const) + "0 · $t$) + " + str(A_3_const) + " · exp(" + str(K_3_const) + "0 · $t$) + "+ str(B_const) + "\nHalf-life = " + str(t_half_round2) + " and " + str(t_half_round2_e2) + str(t_half_round2_e3) + " h"
 
 max_time_var = time_var[-1]
 #-------------------------
